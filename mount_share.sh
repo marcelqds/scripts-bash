@@ -1,39 +1,48 @@
 #!/bin/bash
 echo "Montagem de partição externa" 
 
-path_file="./0008541ecc15"
-str_ip_mac=`cat $path_file`
-path_ips="/home/tchelo/ips/"
+path_ips="/home/tchelo/ips/dev"
 
-IFS=';'
-read -a ip_mac <<< "${str_ip_mac}"
+is_check=true
+while $is_check
+do
+	str_ip_hostname=`cat $path_ips`
 
-ip1="${ip_mac[0]}"
-mac1="${ip_mac[1]}"
-#echo $ip1 $mac1
+	IFS=';'
+	read -a ip_hostname <<< "${str_ip_hostname}"
+	
+	ip1="${ip_hostname[0]}"
+	hostname1="${ip_hostname[1]}"
+	dt_check="${ip_hostname[2]}"
+	dt=`date +"%Y%0m%0d"`
+	
+	len_hostname="${#hostname1}"
+	check_ip=`echo $ip1 | grep -cE "([0-9]+\.){3}[0-9]+"`
+	#echo -e "\nIp:$ip1 \nHostname:$hostname1 - length:$len_hostname\nDate send:$dt_check\nDate Actual:$dt"
+		
+	if [[ $len_hostname -gt 0 && $check_ip -eq 1 && $dt -eq $dt_check ]]; then 
+		is_check=false		
+	else
+		sleep 3
+	fi
 
-check_ip=`echo "${ip1}" | sed 's/[0-9\.]//g' | wc -c`
-check_mac=`echo "${mac1}" | sed 's/[0-9a-z\:]//g' | wc -c`
-#echo $check_ip $check_mac
+done
 
-len_ip="${#ip1}"
-len_mac="${#mac1}"
-#echo $len_ip $len_mac
+base_path="/home/tchelo/"
+hd2="${base_path}hd2.0"
+hd750="${base_path}hd750"
 
-if ! [[ $len_ip -ge 7 && $len_ip -le 15 && $check_ip -le 1 && $len_mac -eq 17 && $check_mac -le 1 ]];
-then
-	echo "Invalid IP or MAC"
-	exit 1
-fi
+`sudo umount -f -l $hd2`
+`sudo umount -f -l $hd750`
 
 echo ""
-hd2=`sudo mount -t nfs4 $ip1:/home/hd2.0 /home/tchelo/hd2.0`
+hd21=`sudo mount -t nfs4 $ip1:/home/hd2.0 $hd2`
 if [ $? != 0 ]; 
 then 
 	echo -e "Ocorreu um erro ao montar hd2.0\n"
 fi
 
-hd750=`sudo mount -t nfs4 $ip1:/home/hd750 /home/tchelo/hd750`
+hd7501=`sudo mount -t nfs4 $ip1:/home/hd750 $hd750`
 if [ $? != 0 ]; 
 then 
 	echo -e "Ocorreu um erro ao montar hd750\n"
