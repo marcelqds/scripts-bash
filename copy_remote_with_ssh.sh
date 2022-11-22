@@ -1,44 +1,45 @@
 #!/bin/bash
 
-echo "Obtendo ip"
+echo "Get IP"
 rede_local="192\.168\.1\.[0-9]{1,}"
 remote="192\.168\.1\.107"
 ip_remote="192.168.1.107"
 name_save=$HOSTNAME
-
 port_remote_pc=2022
+
 if [[ $USER -eq "tchelo" ]]; then 
 	path_user='/home/tchelo/.ssh/con_tchelo'
 elif [[ $USER -eq "root" ]]; then
 	path_user='/root/.ssh/con_root'
 else 
-	echo "usuário não permitido"; exit 1
+	echo "User not permition"; exit 1
 fi
-
-
 
 is_not_ip=true
 while $is_not_ip
 do
+	dt=`date +"%H:%M:$S"`
 	ips=`ip a`
 	echo  -e "${ips}\n\n" >> /home/tchelo/script/ipmac.log	
 	
 	ip1=`echo $ips | grep -oE "192\.168\.1\.([1-9][0-9]?|1[0-9]{2}|2[0-5][0-4])/" | tr -d "/"`
-	echo ":::> ${ip1}" >> /home/tchelo/script/ipmac.log	
+	echo "$dt :::> ${ip1}" >> /home/tchelo/script/ipmac.log	
 	len_ip1=`echo $ip1 | wc -c`
 	len_dots=`echo $ip1 | sed "s/[0-9\s]//g" | wc -c`
 	len_num=`echo $ip1 | sed "s/\.//g" | wc -c`
 	len_total=$(( len_dots + len_num - 1 ))
+	echo ":: len_ip1=$len_ip1\nlen_dots=$len_dots\nlen_num=$len_num" >> /home/tchelo/script/ipmac.log
 	
-	if ! [ $len_ip1 -eq $len_total ] && [ $len_dots -eq 4 ] && [ $len_total -gt 10 ]; then 
-		echo "Erro in ip formation try again"; 
-		sleep 2
+	if [ $len_ip1 -eq $len_total ] && [ $len_dots -eq 4 ] && [ $len_total -gt 10 ]; then 
+		is_not_ip=false
+		dt=`date +"%H:%M:$S"`
+		echo "IP OK: $dt"
 	else
-		is_not_ip=false	
+		echo "Erro in ip formation try again"; 
+		sleep 3
 	fi	
 done
 
-exit 1
 
 is_check=true
 while $is_check
@@ -62,5 +63,3 @@ then
 else
 	echo "Error to copy"
 fi
-
-exit 0
