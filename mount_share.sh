@@ -2,31 +2,22 @@
 echo "Montagem de partição externa" 
 
 path_ips="/home/tchelo/ips/dev"
+#path_ips="./dev"
 
 is_check=true
 while $is_check
 do
-	str_ip_hostname=`cat $path_ips`
-
-	IFS=';'
-	read -a ip_hostname <<< "${str_ip_hostname}"
-	
-	ip1="${ip_hostname[0]}"
-	hostname1="${ip_hostname[1]}"
-	dt_check="${ip_hostname[2]}"
-	dt=`date +"%Y%0m%0d"`
-	
-	len_hostname="${#hostname1}"
-	check_ip=`echo $ip1 | grep -cE "([0-9]+\.){3}[0-9]+"`
-	#echo -e "\nIp:$ip1 \nHostname:$hostname1 - length:$len_hostname\nDate send:$dt_check\nDate Actual:$dt"
-		
-	if [[ $len_hostname -gt 0 && $check_ip -eq 1 && $dt -eq $dt_check ]]; then 
-		is_check=false		
-	else
-		sleep 3
-	fi
-
+	str_ip_hostname=`cat $path_ips`		
+	date_current=`date +"%Y%0m%0d"`
+	pattern_check="^([0-9]{1,3}\.){3}[0-9]{1,3}\;[a-z0-9\-]{3,10}\;${date_current}$"
+	check_values=`echo $str_ip_hostname | grep -icE $pattern_check`
+	if [ $check_values -eq 1 ]; then is_check=false; else sleep 3; fi
 done
+
+IFS=';'
+read -a ip_hostname <<< "${str_ip_hostname}"
+ip1="${ip_hostname[0]}"
+hostname1="${ip_hostname[1]}"
 
 base_path="/home/tchelo/"
 hd2="${base_path}hd2.0"
